@@ -1,0 +1,32 @@
+import { Moment } from 'moment';
+import { Repository } from 'typeorm';
+import { AppointmentService } from '../appointment/appointment.service';
+import { Image } from '../entities/image.entity';
+import { PaymentService } from '../payment/payment.service';
+import { ReviewService } from '../review/review.service';
+import { Studio } from '../studio/studio.entity';
+import { StudioService } from '../studio/studio.service';
+import { User } from '../users/user.entity';
+import { UserService } from '../users/user.service';
+export declare class SeederController {
+    private userService;
+    private studioService;
+    private reviewService;
+    private apptService;
+    private paymentService;
+    private readonly imageRepo;
+    private readonly userRepo;
+    private log;
+    constructor(userService: UserService, studioService: StudioService, reviewService: ReviewService, apptService: AppointmentService, paymentService: PaymentService, imageRepo: Repository<Image>, userRepo: Repository<User>);
+    seedDefaultUsers(): Promise<boolean>;
+    genFakeUser(): User;
+    genFakeStudio(): Promise<Studio>;
+    getFakeStudioReg(): import("../studio/dto/studio.registration.dto").StudioRegistrationDto;
+    postToSeedDB(): Promise<string>;
+    patchUserNames(): Promise<void>;
+    generateStudioWithManager(): Promise<Studio>;
+    seedStudioManager(): Promise<Studio>;
+    seedArtist(studio: Studio): Promise<void>;
+    addAppointment(date: Moment, user: User, studio: Studio): Promise<void>;
+    testSaveCardWorkflow(): Promise<void>;
+}

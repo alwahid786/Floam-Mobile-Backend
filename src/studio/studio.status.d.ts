@@ -1,0 +1,6 @@
+export declare enum STUDIO_STATUS {
+    DRAFT = "DRAFT",
+    PENDING_APPROVAL = "PENDING_APPROVAL",
+    REJECTED = "REJECTED",
+    APPROVED = "APPROVED"
+}
