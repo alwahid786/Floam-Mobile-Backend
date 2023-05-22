@@ -10,7 +10,7 @@ import { NotificationPreference } from 'src/communication/notification.preferenc
 import axios from 'axios';
 import { integer } from 'aws-sdk/clients/lightsail';
 const stripeTest = require('stripe')(
-     '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'
+     'sk_test_51IpFtXBt3PovyCqB7tEHqxxsH6K3OgIqwm2A8TCfYCmk4RGR1GXIMzIKOf3PYdHXdlCgH99NjN1K7UqopENJSyPV00BAV1yJFD'
 );
 const stripeProd = require('stripe')('sk_test_MEvj1NP7uAlLRMMWukEMnzV5');
 const https = require('https');
@@ -185,13 +185,16 @@ export class UserService {
      //     }
      // }
 
-     async sendPush(userID: string, message: string, title: string) {
+     async sendPush(userID: string, message: string, title: string, appt_id?: string) {
           var data = {
                "app_id": "ccd5c591-07b7-475d-9dd2-8a9d0139a781",
                "contents": { "en": message },
                "heading": title,
                'include_external_user_ids': [userID],
                "included_segments": ["Subscribed Users"],
+          }
+          if (appt_id) {
+               data['data'] = appt_id;
           }
           const postData = JSON.stringify(data);
           const options = {

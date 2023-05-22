@@ -11,6 +11,7 @@ export enum APPT_STATUSES {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
   CANCELLED = 'cancelled',
+  REQUEST = 'requested',
 }
 
 @Entity('appointment')
@@ -68,7 +69,7 @@ export class Appointment extends BaseEntity {
   @Column({ default: 0 })
   numOfGuests: number
 
-  @Column({ default: APPT_STATUSES.PENDING })
+  @Column({ default: APPT_STATUSES.REQUEST })
   status: APPT_STATUSES
 
   @Column({ default: false })

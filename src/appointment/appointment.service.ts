@@ -16,6 +16,7 @@ import { UserService } from '../users/user.service'
 import { format as formatDate } from 'date-fns'
 import { StudioService } from '../studio/studio.service'
 import { format, formatInTimeZone } from 'date-fns-tz'
+import { PaymentHistoryService } from '../paymentHistory/paymentHistory.service'
 
 @Injectable()
 export class AppointmentService {
@@ -28,6 +29,7 @@ export class AppointmentService {
     private readonly calendarService: CalendarService,
     private userService: UserService,
     private UserNotificationService: UserNotificationService,
+    private paymentHistoryService: PaymentHistoryService,
     private studioService: StudioService,
   ) { }
 
@@ -268,19 +270,78 @@ export class AppointmentService {
       addOns,
       notes,
       numOfGuests,
-      status: calendar.autoConfirmAppts ? APPT_STATUSES.CONFIRMED : APPT_STATUSES.PENDING,
+      status: calendar.autoConfirmAppts ? APPT_STATUSES.REQUEST : APPT_STATUSES.PENDING,
       userId: user.id,
       studioId: studio.id,
       notificationSent: false,
       isEarning: false,
       floamAmount,
-      paymentIntent:null
+      paymentIntent: null
     }
 
     appt = await this.createOrUpdate(appt)
     this.logger.log(`[creteBooking] appointment successfully created`)
     // await this.commsService.sendNewApptNotice(createdAppt)
     return appt.id
+  }
+
+  // Accept Booking Request Function 
+  async acceptBooking(apptId: string) {
+    let appt = await this.getBooking(apptId)
+    const studio = await this.studioService.getStudio(appt.studioId)
+
+    const data = await this.appointmentRepo.update(
+      { id: apptId },
+      { status: APPT_STATUSES.CONFIRMED }
+    )
+    const text = `${studio.name} has accepted your appointment request.`
+    await this.UserNotificationService.createNotification(text, appt.userId, 'appointmentConfirmed', apptId);
+    await this.userService.sendPush(appt.userId, text, "Appointment Confirmed", apptId);
+    return data;
+  }
+
+  // Cancel Booking Request Function 
+  async cancelBooking(apptId: string) {
+    let appt = await this.getBooking(apptId)
+    const studio = await this.studioService.getStudio(appt.studioId)
+
+    const data = await this.appointmentRepo.update(
+      { id: apptId },
+      { status: APPT_STATUSES.CANCELLED }
+    )
+    const artistUser = await this.userService.getUser(appt.cancelledByUserId);
+    const user = await this.userService.getUser(appt.userId);
+    let paymentHistory = await this.paymentHistoryService.getPaymentByTransactionId(apptId);
+    var startTime = moment(new Date(), 'DD-MM-YYYY hh:mm:ss');
+    var endTime = moment(appt.start, 'DD-MM-YYYY hh:mm:ss');
+    var hoursDiff = endTime.diff(startTime, 'hours');
+    if (paymentHistory) {
+      if (artistUser.id === studio.userId) {
+        let refund = await this.paymentHistoryService.createRefund(paymentHistory);
+        if (refund.status == 'succeeded') {
+          await this.paymentHistoryService.createRefundLog(user, null, refund, paymentHistory.amount, 'notRefund', 0, apptId);
+        }
+      }
+      else if (hoursDiff < 24 && artistUser.id != studio.userId) {
+        let studioUserAmount = (3 / 100) * paymentHistory.amount;
+        let artistUserAmount = paymentHistory.amount - studioUserAmount;
+        let refund = await this.paymentHistoryService.createRefund(paymentHistory);
+        if (refund.status == 'succeeded') {
+          await this.paymentHistoryService.createRefundLog(artistUser, studio.userId, refund, studioUserAmount, 'refund', artistUserAmount, apptId);
+        }
+      }
+      else {
+        let refund = await this.paymentHistoryService.createRefund(paymentHistory);
+        if (refund.status == 'succeeded') {
+          await this.paymentHistoryService.createRefundLog(artistUser, null, refund, paymentHistory.amount, 'notRefund', 0, apptId);
+        }
+      }
+    }
+
+    const text = `${studio.name} has cancelled your appointment request. Refund has been initiated for the same booking.`
+    await this.UserNotificationService.createNotification(text, appt.userId, 'appointmentCancelled', apptId);
+    await this.userService.sendPush(appt.userId, text, "Appointment Cancelled", apptId);
+    return data;
   }
   getStudioBooking(studio: Studio): Promise<Appointment[]> {
     const date = moment().subtract(0, 'hours').format("YYYY-MM-DD HH:mm:ss")
@@ -338,14 +399,18 @@ export class AppointmentService {
   async cancelAppointment(
     apptId: string,
     reason: string,
-    cancelledByUserId: string,
+    cancelledByUserId?: string,
   ) {
     let appt = await this.getBooking(apptId)
 
     appt.status = APPT_STATUSES.CANCELLED
     appt.cancelledAt = new Date()
     appt.cancellationReason = reason
-    appt.cancelledByUserId = cancelledByUserId
+    if (cancelledByUserId) {
+      appt.cancelledByUserId = cancelledByUserId
+    } else {
+      appt.cancelledByUserId = appt.studioId
+    }
 
     appt = await this.createOrUpdate(appt)
 
@@ -355,14 +420,12 @@ export class AppointmentService {
     if (user.id == studio.userId) {
       const text = `${studio.name} has cancelled your booking on ${formattedDate}. Refund has been initiated for the same booking.`
       await this.UserNotificationService.createNotification(text, appt.userId, 'appointmentCancel', appt.id);
-      await this.userService.sendPush(appt.userId, text, "Appointment Cancelled");
-
+      await this.userService.sendPush(appt.userId, text, "Appointment Cancelled", apptId);
     }
     else {
       const text = `${user.firstName} ${user.lastName} cancelled their session on ${formattedDate}.`
       await this.UserNotificationService.createNotification(text, studio.userId, 'appointmentCancel', appt.id);
-      await this.userService.sendPush(studio.userId, text, "Appointment Cancelled");
-
+      await this.userService.sendPush(studio.userId, text, "Appointment Cancelled", apptId);
     }
     // await this.commsService.sendApptCancelledNotice(appt, cancelledByUserId)
     return appt

@@ -5,7 +5,7 @@ import { User } from '../users/user.entity';
 import { PayoutDto } from './payout.dto';
 import { Payout, PAYOUT_STATUSES } from './payout.entity';
 const stripeTest = require('stripe')(
-     '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', {
+     'sk_test_51IpFtXBt3PovyCqB7tEHqxxsH6K3OgIqwm2A8TCfYCmk4RGR1GXIMzIKOf3PYdHXdlCgH99NjN1K7UqopENJSyPV00BAV1yJFD', {
      apiVersion: '2020-08-27'
 }
 );
