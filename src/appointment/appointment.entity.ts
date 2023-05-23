@@ -12,6 +12,8 @@ export enum APPT_STATUSES {
   CONFIRMED = 'confirmed',
   CANCELLED = 'cancelled',
   REQUEST = 'requested',
+  ACCEPT = 'accepted',
+
 }
 
 @Entity('appointment')

@@ -292,7 +292,7 @@ export class AppointmentService {
 
     const data = await this.appointmentRepo.update(
       { id: apptId },
-      { status: APPT_STATUSES.CONFIRMED }
+      { status: APPT_STATUSES.ACCEPT }
     )
     const text = `${studio.name} has accepted your appointment request.`
     await this.UserNotificationService.createNotification(text, appt.userId, 'appointmentConfirmed', apptId);
