@@ -50,12 +50,31 @@ export class UserNotificationService {
     })
   }
 
+  changeNotificationStatus(apptId: string, status: string) {
+    let apptStatus = 'appointmentAccept';
+    if(status === 'reject'){
+      apptStatus = 'appointmentReject';
+    }
+    this.userNotificationRepo.findOne({
+      type: 'appointmentRequest',
+      entityId: apptId
+    }).then(notification => {
+      if (notification) {
+        notification.type = apptStatus;
+        this.userNotificationRepo.save(notification);
+      }
+    }).catch(error => {
+      // Handle error
+    });
+  }
+
+
   getNotificationsByUserForDot(userId: string) {
     return this.userNotificationRepo.findOne({ where: { userId: userId, wasRead: false } })
-}
+  }
 
   async markAsRead(notificationId: string) {
-    const notification = await this.userNotificationRepo.findOne({ where: { id: notificationId }})
+    const notification = await this.userNotificationRepo.findOne({ where: { id: notificationId } })
     if (!notification) {
       this.log.error(`notification not found. id: ${notificationId}`)
       throw new Error('Notification Not found!')

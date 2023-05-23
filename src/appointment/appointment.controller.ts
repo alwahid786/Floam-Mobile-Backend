@@ -167,9 +167,11 @@ export class AppointmentController {
     console.log(`Status is: ${status}`)
     if (status === 'accept') {
       let status = this.appointmentService.acceptBooking(apptId)
+      await this.UserNotificationService.changeNotificationStatus(apptId, 'accept');
       return "Appointment Request Accepted Successfully!"
     } else if (status === 'reject') {
       let status = this.appointmentService.cancelBooking(apptId)
+      await this.UserNotificationService.changeNotificationStatus(apptId, 'reject');
       return "Appointment request Cancelled Successfully!"
     }
   }
