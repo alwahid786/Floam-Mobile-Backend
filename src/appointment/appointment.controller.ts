@@ -25,7 +25,7 @@ export class AppointmentController {
     private userService: UserService,
     private UserNotificationService: UserNotificationService,
     private payoutService: PayoutService,
-    private paymentHistoryService: PaymentHistoryService,                             
+    private paymentHistoryService: PaymentHistoryService,
     private readonly paymentService: PaymentService,
     private readonly userCardService: UserCardService,
   ) {
@@ -164,7 +164,6 @@ export class AppointmentController {
 
   @Post('/accept-reject/:apptId/:status')
   async acceptRejectSession(@Param('apptId') apptId: string, @Param('status') status: string) {
-    console.log(`Status is: ${status}`)
     if (status === 'accept') {
       let status = this.appointmentService.acceptBooking(apptId)
       await this.UserNotificationService.changeNotificationStatus(apptId, 'accept');

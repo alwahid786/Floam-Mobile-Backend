@@ -7,13 +7,14 @@ export class UserNotificationController {
 
   constructor(
     private readonly userNotificationService: UserNotificationService,
-  ) {}
+  ) { }
 
   @Get('users/:userId')
-  async getUserNotifications(@Param('userId') userId: string){
+  async getUserNotifications(@Param('userId') userId: string) {
     this.log.log('[GET] notification which belong to user')
     const userNotifications = await this.userNotificationService.getNotificationsByUser(userId)
     this.userNotificationService.findReadNotification(userNotifications);
+    console.log(JSON.stringify(userNotifications))
     return (userNotifications)
   }
 
@@ -23,13 +24,13 @@ export class UserNotificationController {
   }
 
   @Get('getDot/:userId')
-  async getDot(@Param('userId') userId: string){
+  async getDot(@Param('userId') userId: string) {
     this.log.log('[GET] notification which belong to user')
     const userNotification = await this.userNotificationService.getNotificationsByUserForDot(userId)
-    if (userNotification){
+    if (userNotification) {
       return true
     }
-    else{
+    else {
       return false
     }
   }
