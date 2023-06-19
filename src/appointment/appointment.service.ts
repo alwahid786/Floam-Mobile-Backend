@@ -294,6 +294,7 @@ export class AppointmentService {
       { id: apptId },
       { status: APPT_STATUSES.ACCEPT }
     )
+    console.log(data);
     const text = `${studio.name} has accepted your appointment request.`
     await this.UserNotificationService.createNotification(text, appt.userId, 'appointmentAccept', apptId);
     await this.userService.sendPush(appt.userId, text, "Appointment Confirmed", apptId);
