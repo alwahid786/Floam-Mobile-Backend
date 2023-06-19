@@ -35,22 +35,24 @@ export class AppointmentController {
       if (appointments.length > 0) {
         for (var appointment of await appointments) {
           await this.appointmentService.updateAppointment(appointment);
-          const studio = await this.studioService.getStudio(appointment.studioId);
-          let now = new Date()
-          let studio_date = new Date(studio.studioOpen)
-          let hour = studio_date.getTime() - now.getTime();
-          let seconds = Math.floor(hour / 1000);
-          let minutes = Math.floor(seconds / 60);
-          let hours = Math.floor(minutes / 60);
-          let totalHours;
-          if (hours < 1) {
-            totalHours = "a few";
-          } else {
-            totalHours = hours;
+          if (appointment.status !== 'requested' && appointment.status !== 'pending' && appointment.status !== 'cancelled') {
+            const studio = await this.studioService.getStudio(appointment.studioId);
+            let now = new Date()
+            let studio_date = new Date(studio.studioOpen)
+            let hour = studio_date.getTime() - now.getTime();
+            let seconds = Math.floor(hour / 1000);
+            let minutes = Math.floor(seconds / 60);
+            let hours = Math.floor(minutes / 60);
+            let totalHours;
+            if (hours < 1) {
+              totalHours = "a few";
+            } else {
+              totalHours = hours;
+            }
+            const text = `You have an upcoming session at ${studio.name} in ${totalHours} hours`
+            await this.UserNotificationService.createNotification(text, appointment.userId, 'upcomingAppointment', appointment.id);
+            await this.userService.sendPush(appointment.userId, text, "Upcoming Session");
           }
-          const text = `You have an upcoming session at ${studio.name} in ${totalHours} hours`
-          await this.UserNotificationService.createNotification(text, appointment.userId, 'upcomingAppointment', appointment.id);
-          await this.userService.sendPush(appointment.userId, text, "Upcoming Session");
         }
         return null
       }
@@ -154,12 +156,13 @@ export class AppointmentController {
     await this.paymentHistoryService.saveAppointmentId(paymentHistory);
 
     const text = `${user.firstName} ${user.lastName} has requested to book your Studio`
-    await this.UserNotificationService.createNotification(text, studioUser.id, 'appointmentRequest', apptId);
-    await this.userService.sendPush(studioUser.id, text, "appointmentRequest", apptId);
+    await this.UserNotificationService.createNotification(text, studioUser.id, 'appointmentRequest', apptId)
+    console.log('reached here --------------------')
+    const data2 = await this.userService.sendPush(studioUser.id, text, "appointmentRequest", apptId); //send push to studio owner
+    console.log(JSON.stringify(data2));
     // const paymentText = `You have recieved payment of $${studioUserAmount} from ${user.firstName} ${user.lastName}`
     //  await this.UserNotificationService.createNotification(paymentText, studio.userId, 'paymentRecieved', apptId);
     return 'Reservation request made successfully!'
-
   }
 
   @Post('/accept-reject/:apptId/:status')
@@ -172,7 +175,7 @@ export class AppointmentController {
       let status = this.appointmentService.cancelBooking(apptId)
       await this.UserNotificationService.changeNotificationStatus(apptId, 'reject');
       return "Appointment request Cancelled Successfully!"
-    }
+    } 
   }
 
   // get appointments without review

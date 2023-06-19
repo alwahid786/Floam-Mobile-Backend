@@ -337,7 +337,7 @@ export class AppointmentService {
         }
       }
     }
- 
+
     const text = `${studio.name} has cancelled your appointment request. Refund has been initiated for the same booking.`
     await this.UserNotificationService.createNotification(text, appt.userId, 'appointmentCancelled', apptId);
     await this.userService.sendPush(appt.userId, text, "Appointment Cancelled", apptId);

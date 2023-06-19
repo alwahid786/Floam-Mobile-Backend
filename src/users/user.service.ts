@@ -194,8 +194,11 @@ export class UserService {
                "included_segments": ["Subscribed Users"],
           }
           if (appt_id) {
-               data['data'] = appt_id;
+               data["data"] = {
+                    "data": appt_id
+               };
           }
+          console.log(data);
           const postData = JSON.stringify(data);
           const options = {
                hostname: 'onesignal.com',
