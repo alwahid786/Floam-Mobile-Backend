@@ -293,12 +293,11 @@ export class AppointmentService {
     const data = await this.appointmentRepo.update(
       { id: apptId },
       { status: APPT_STATUSES.ACCEPT }
-    )
-    console.log(data);
+    ) 
     const text = `${studio.name} has accepted your appointment request.`
     await this.UserNotificationService.createNotification(text, appt.userId, 'appointmentAccept', apptId);
     await this.userService.sendPush(appt.userId, text, "Appointment Confirmed", apptId);
-    return data;
+    return data; 
   }
 
   // Cancel Booking Request Function 
@@ -318,7 +317,7 @@ export class AppointmentService {
     var hoursDiff = endTime.diff(startTime, 'hours');
     if (paymentHistory) {
       if (artistUser.id === studio.userId) {
-        let refund = await this.paymentHistoryService.createRefund(paymentHistory);
+        let refund = await this.paymentHistoryService.createRefundByIntent(paymentHistory);
         if (refund.status == 'succeeded') {
           await this.paymentHistoryService.createRefundLog(user, null, refund, paymentHistory.amount, 'notRefund', 0, apptId);
         }
@@ -326,13 +325,13 @@ export class AppointmentService {
       else if (hoursDiff < 24 && artistUser.id != studio.userId) {
         let studioUserAmount = (3 / 100) * paymentHistory.amount;
         let artistUserAmount = paymentHistory.amount - studioUserAmount;
-        let refund = await this.paymentHistoryService.createRefund(paymentHistory);
-        if (refund.status == 'succeeded') {
+        let refund = await this.paymentHistoryService.createRefundByIntent(paymentHistory);
+        if (refund.status == 'succeeded') { 
           await this.paymentHistoryService.createRefundLog(artistUser, studio.userId, refund, studioUserAmount, 'refund', artistUserAmount, apptId);
         }
       }
       else {
-        let refund = await this.paymentHistoryService.createRefund(paymentHistory);
+        let refund = await this.paymentHistoryService.createRefundByIntent(paymentHistory);
         if (refund.status == 'succeeded') {
           await this.paymentHistoryService.createRefundLog(artistUser, null, refund, paymentHistory.amount, 'notRefund', 0, apptId);
         }

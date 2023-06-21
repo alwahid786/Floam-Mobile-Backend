@@ -236,6 +236,12 @@ export class PaymentHistoryService {
     });
     return (refund)
   };
+  createRefundByIntent = async (data) => {
+    const refund = await stripeTest.refunds.create({
+      payment_intent: data.transactionId,
+    });
+    return (refund)
+  };
 
   async getEarnings(userId: string): Promise<string> {
     let data: any
