@@ -190,8 +190,7 @@ export class UserService {
                "app_id": "ccd5c591-07b7-475d-9dd2-8a9d0139a781",
                "contents": { "en": message },
                "headings": { "en": title },
-               'include_external_user_ids': [userID],
-               "included_segments": ["Subscribed Users"],
+               'include_external_user_ids': [userID]
           }
           if (appt_id) {
                data["data"] = {
