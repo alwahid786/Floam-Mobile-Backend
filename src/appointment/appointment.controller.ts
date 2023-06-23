@@ -158,7 +158,7 @@ export class AppointmentController {
     const text = `${user.firstName} ${user.lastName} has requested to book your Studio`
     await this.UserNotificationService.createNotification(text, studioUser.id, 'appointmentRequest', apptId)
     console.log('reached here --------------------')
-    const data2 = await this.userService.sendPush(studioUser.id, text, "appointmentRequest", apptId); //send push to studio owner
+    const data2 = await this.userService.sendPush(studioUser.id, text, "Appointment Request", apptId); //send push to studio owner
     console.log(JSON.stringify(data2));
     // const paymentText = `You have recieved payment of $${studioUserAmount} from ${user.firstName} ${user.lastName}`
     //  await this.UserNotificationService.createNotification(paymentText, studio.userId, 'paymentRecieved', apptId);
